@@ -36,6 +36,12 @@ Il sistema è dimensionato per sostenere un carico stimato fino a **810.000 ordi
 
 ---
 
+## 📋 Requisiti e Dominio Applicativo
+
+*(Inserisci qui i dettagli sui requisiti e sul dominio applicativo del progetto)*
+
+---
+
 ## 🏗️ Architettura e Scelte Progettuali
 
 Durante le fasi di **Progettazione Concettuale** e **Progettazione Logica**, sono state adottate soluzioni architetturali mirate a ottimizzare l'efficienza computazionale e la manutenibilità:
@@ -53,6 +59,12 @@ Durante le fasi di **Progettazione Concettuale** e **Progettazione Logica**, son
 4. **Selezione delle Chiavi Primarie**:
    - Introduzione di un `id` artificiale per Ristorante per sostituire la tripla `(via, numero_civico, cap)` ed ereditare relazioni più snelle nelle tabelle correlate (`Piatto`, `Menu`, `Promuove`).
    - Adozione di una `Matricola` univoca per il personale dipendente (`Rider`, `Operatore`).
+
+---
+
+## 📁 Struttura del Repository
+
+*(Inserisci qui la struttura delle cartelle e dei file del repository)*
 
 ---
 
@@ -94,9 +106,6 @@ mysql -u root -p < seed_database.sql
 
 # 3. Collaudo delle query
 mysql -u root -p < query_database.sql
-```
-
----
 
 ## 🛠️ Script di Deployment Automatico (`setup_database.sh`)
 
