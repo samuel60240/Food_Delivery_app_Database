@@ -10,18 +10,6 @@
 
 ---
 
-## 📌 Indice
-1. [Panoramica del Progetto](#panoramica-del-progetto)
-2. [Requisiti e Dominio Applicativo](#requisiti-e-dominio-applicativo)
-3. [Architettura e Scelte Progettuali](#architettura-e-scelte-progettuali)
-4. [Struttura del Repository](#struttura-del-repository)
-5. [Schema del Database (16 Tabelle)](#schema-del-database-16-tabelle)
-6. [Guida all'Installazione ed Esecuzione](#guida-allinstallazione-ed-esecuzione)
-7. [Query e Collaudo Funzionale](#query-e-collaudo-funzionale)
-8. [Analisi dei Volumi e delle Prestazioni](#analisi-dei-volumi-e-delle-prestazioni)
-
----
-
 ## 📖 Panoramica del Progetto
 
 Il progetto ha come obiettivo la progettazione e l'implementazione di un **database relazionale completo per una piattaforma di Food Delivery** su scala metropolitana.
