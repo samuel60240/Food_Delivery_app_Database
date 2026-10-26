@@ -1,130 +1,180 @@
-
----
-
-# 🍕 README.md
+# 🍕 Architettura Database Food Delivery
 
 > **Progetto Universitario per il corso di Basi di Dati**  
-> **Titolo:** Architettura Database Food Delivery  
+> **Repository:**   
 > **Autori:** Begalov Nikita, Carollo Vincenzo Aurelio, Falzone Samuel, Villa Marco  
-> **Data:** 18 Gennaio 2026  
+> **Data Rilascio:** 18 Gennaio 2026  
+> **Licenza:** MIT  
 
 ---
 
-## 📖 Panoramica del Progetto
-
-Il progetto ha come obiettivo la progettazione e l'implementazione di un **database relazionale completo per una piattaforma di Food Delivery** su scala metropolitana.
-
-La base di dati è progettata per gestire in modo efficiente le interazioni fra quattro attori principali:
-- **Clienti**: effettuano ordini, pagamenti, usufruiscono di un wallet e rilasciano recensioni.
-- **Ristoranti**: gestiscono i menu, la composizione dei piatti (ingredienti/allergeni) e le promozioni settimanali.
-- **Rider**: accettano e consegnano gli ordini in base a disponibilità e fasce orarie.
-- **Servizio Assistenza (Operatori / Ticket)**: supportano i clienti risolvendo segnalazioni tramite una chat integrata reificata.
-
-Il sistema è dimensionato per sostenere un carico stimato fino a **810.000 ordini/giorno**.
+## 📌 Indice dei Contenuti
+- [📖 Panoramica del Sistema](#-panoramica-del-sistema)
+- [🎯 Requisiti del Dominio Applicativo](#-requisiti-del-dominio-applicativo)
+- [🏗️ Architettura e Scelte Progettuali](#%EF%B8%8F-architettura-e-scelte-progettuali)
+- [📂 Struttura del Repository](#-struttura-del-repository)
+- [🗄️ Schema Relazionale e Dettaglio Tabelle](#%EF%B8%8F-schema-relazionale-e-dettaglio-tabelle)
+- [⚙️ Guida all'Installazione ed Esecuzione](#%EF%B8%8F-guida-allinstallazione-ed-esecuzione)
+- [📊 Analisi dei Volumi e delle Prestazioni](#-analisi-dei-volumi-e-delle-prestazioni)
+- [🧪 Suite di Collaudo (30 Query SQL)](#-suite-di-collaudo-30-query-sql)
+- [👥 Team di Sviluppo & Licenza](#-team-di-sviluppo--licenza)
 
 ---
 
-## 📋 Requisiti e Dominio Applicativo
+## 📖 Panoramica del Sistema
 
-*(Inserisci qui i dettagli sui requisiti e sul dominio applicativo del progetto)*
+> **Nota Architetturale:**  
+> Il sistema è stato progettato e normalizzato in **Terza Forma Normale (3FN)** per garantire l'integrità dei dati, eliminare le ridondanze e supportare un'elevata frequenza d'accesso in lettura e scrittura [1, 2].
+
+La piattaforma gestisce l'intero ciclo di vita del servizio di ristorazione a domicilio su scala metropolitana, permettendo la sinergia in tempo reale tra quattro macro-attori principali [1, 2]:
+
+
+
+- **👤 Clienti**: gestione account, indirizzi, wallet con saldo integrato, carte fedeltà, carrello ordini e valutazioni [1, 2].
+- **🍕 Ristoranti**: gestione del catalogo menu, ingredienti, allergeni, disponibilità delle pietanze e sconti settimanali [1, 2].
+- **🛵 Rider**: assegnazione dinamica delle consegne in base a zona (CAP), fasce orarie e giorni lavorativi [1, 2].
+- **🎧 Operatori dell'Assistenza**: gestione delle segnalazioni e supporto in tempo reale tramite chat integrata reificata [1, 2].
+
+---
+
+## 🎯 Requisiti del Dominio Applicativo
+
+### 🟢 Modulo Cliente e Ordinazioni
+- **Autenticazione**: registrazione sicura con gestione di anagrafica, indirizzo principale e credenziali [1].
+- **Wallet Integrato**: borsellino elettronico con saldo ricaricabile e storico transazioni [1].
+- **Filtri di Ricerca Avanzata**: selezione di ristoranti e piatti per tipologia di cucina, indirizzo (CAP), fascia di prezzo e promozioni attive [1, 2].
+
+### 🟡 Modulo Ristorazione e Promozioni
+- **Catalogo Dinamico**: gestione personalizzata dei menu e dei singoli piatti [1].
+- **Mappatura Ingredienti**: dettaglio della composizione di ogni pietanza per il tracciamento degli allergeni [1].
+- **Promozioni Settimanali**: applicazione di percentuali di sconto temporanee su piatti specifici [1].
+
+### 🔴 Modulo Logistica e Fatturazione
+- **Tracciamento Ordine**: monitoraggio degli orari di ordinazione e di consegna effettiva [1, 2].
+- **Fatturazione e Fisco**: generazione automatica di ricevute fiscali 1:1 con distinzione tra imponibile, IVA, costo di consegna, sconti e mance [1, 2].
+
+### 🔵 Modulo Feedback e Assistenza
+- **Rating Indipendente**: valutazione distinta su scala 1-5 per la qualità del cibo del ristorante e l'efficienza del rider [1, 2].
+- **Ticketing System**: apertura di ticket di supporto da parte del cliente con gestione dei messaggi di chat in ordine cronologico [1, 2].
 
 ---
 
 ## 🏗️ Architettura e Scelte Progettuali
 
-Durante le fasi di **Progettazione Concettuale** e **Progettazione Logica**, sono state adottate soluzioni architetturali mirate a ottimizzare l'efficienza computazionale e la manutenibilità:
+> **Importante:**  
+> Tutte le scelte logiche e di ristrutturazione sono state modellate per ottimizzare i costi d'accesso sulle operazioni con carico stimato di **810.000 transazioni al giorno** [1, 2].
 
-1. **Partizionamento Ordine / Ricevuta**:
-   - L'entità Ordine è stata separata dalla Ricevuta (relazione 1:1) per isolare le informazioni di logistica e valutazione dai dati contabili e di pagamento. Ciò riduce la dimensione della tabella Ordine (oggetto di ~810.000 inserimenti/giorno).
+1. **⚡ Partizionamento Verticale Ordine / Ricevuta (1:1)**
+   - *Criticità:* La tabella  subisce oltre 810.000 inserimenti/giorno [1, 2]. Mantenere le informazioni di pagamento nello stesso record aumenterebbe il carico d'I/O sulle query gestionali.
+   - *Soluzione:* Separazione in una tabella logistica  e una tabella contabile , riducendo la dimensione dei blocchi di memoria interessati dalle query operative [1, 2].
 
-2. **Eliminazione della Generalizzazione Personale**:
-   - La superclasse Personale (con le sottoclassi Rider e Operatore) è stata dissolta accorpando gli attributi anagrafici direttamente nelle tabelle figlie. Questo evita JOIN onerose su query operative frequenti relative alle consegne e al supporto.
+2. **🚀 Dissoluzione della Generalizzazione **
+   - *Criticità:* L'entità padre  (con figlie  e ) richiederebbe clausole  sistematiche per accedere alle informazioni operative dei dipendenti [1].
+   - *Soluzione:* Accorpamento degli attributi anagrafici direttamente nelle entità figlie  e , eliminando le  e migliorando i tempi di risposta [1].
 
-3. **Gestione degli Attributi Multivalore e Chat**:
-   - **Reificazione della Chat**: Lo storico messaggi dei ticket è stato ristrutturato nella tabella `Messaggio` (chiave primaria composta `ticket`, `data`), permettendo di tracciare mittente e timestamp di ciascun messaggio.
-   - **Attributo Lingue**: Memorizzato come stringa strutturata/JSON nella tabella `Operatore` per evitare l'introduzione di tabelle ponte superflue.
+3. **💬 Reificazione della Chat dei Ticket ()**
+   - *Criticità:* La gestione di una chat all'interno dell'entità  impedirebbe la memorizzazione strutturata dei singoli messaggi e dei timestamp [1].
+   - *Soluzione:* Creazione dell'entità  con chiave primaria composta  per garantire la cronologia precisa degli scambi [1].
 
-4. **Selezione delle Chiavi Primarie**:
-   - Introduzione di un `id` artificiale per Ristorante per sostituire la tripla `(via, numero_civico, cap)` ed ereditare relazioni più snelle nelle tabelle correlate (`Piatto`, `Menu`, `Promuove`).
-   - Adozione di una `Matricola` univoca per il personale dipendente (`Rider`, `Operatore`).
-
----
-
-## 📁 Struttura del Repository
-
-*(Inserisci qui la struttura delle cartelle e dei file del repository)*
+4. **🌐 Gestione dell'Attributo Multivalore **
+   - *Soluzione:* Memorizzazione delle lingue conosciute dagli operatori come formato strutturato (JSON/String) nella tabella , evitando tabelle ponte superflue per attributi puramente consultativi [1].
 
 ---
 
-## 🗄️ Schema del Database (16 Tabelle)
+## 📂 Struttura del Repository
 
-| Tabella | Descrizione | Chiave Primaria |
-| :--- | :--- | :--- |
-| **Cliente** | Utenti registrati che effettuano ordini | `username` |
-| **Ristorante** | Esercizi commerciali registrati | `id` |
-| **Rider** | Personale addetto alla consegna a domicilio | `matricola` |
-| **Operatore** | Personale del servizio clienti / ticket | `matricola` |
-| **Ordine** | Ordini effettuati dai clienti presso i ristoranti | `id` |
-| **Ricevuta** | Documento contabile collegato 1:1 all'Ordine | `id` |
-| **Ticket** | Segnalazioni di assistenza aperte dai clienti | `id` |
-| **Messaggio** | Messaggi della chat relativa a un ticket | `(ticket, data)` |
-| **Menu** | Elenco dei menu proposti da un ristorante | `(nome, ristorante)` |
-| **Piatto** | Singola pietanza preparata da un ristorante | `(nome, ristorante)` |
-| **Ingrediente** | Catalogo unico degli ingredienti/allergeni | `nome` |
-| **Assistenza** | Associazione N:M tra Ticket e Operatore umano | `(ticket, operatore)` |
-| **Contiene** | Associazione N:M tra Piatto ed Ingrediente | `(nome_piatto, ristorante, ingrediente)` |
-| **Comprende** | Associazione N:M tra Menu e Piatto | `(menu, nome_piatto, ristorante)` |
-| **Promuove** | Promozioni settimanali applicate sui piatti | `(ristorante, nome_piatto)` |
-| **Recensione** | Valutazioni e recensioni lasciate dal cliente | `(ordine, ristorante)` |
+
 
 ---
 
-## 💻 Guida all'Installazione ed Esecuzione
+## 🗄️ Schema Relazionale e Dettaglio Tabelle
 
-### Requisiti
-- **MySQL Server 8.0+** o **MariaDB 10.5+**
+Il database si compone di **16 tabelle relazionali** completamente vincolate da chiavi primarie, uniche ed estere () [1, 2].
 
-### Esecuzione Rapida tramite CLI
-```bash
-# 1. Creazione delle tabelle DDL
-mysql -u root -p < schema_database.sql
+| # | Tabella | Ruolo e Descrizione | Chiave Primaria (PK) | Chiavi Estere (FK) |
+| :-: | :--- | :--- | :--- | :--- |
+| **1** |  | Profili utente e wallet residuo |  | - |
+| **2** |  | Anagrafica esercizi commerciali | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) | - |
+| **3** |  | Personale addetto alle consegne |  | - |
+| **4** |  | Personale dell'assistenza clienti |  | - |
+| **5** |  | Registro ordini e logistica | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) | , ,  |
+| **6** |  | Dettaglio fiscale e contabile (1:1) | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |  |
+| **7** |  | Segnalazioni di supporto clienti | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |  |
+| **8** |  | Chat del ticket di assistenza |  |  |
+| **9** |  | Cataloghi dei ristoranti |  |  |
+| **10** |  | Singole pietanze dei menu |  |  |
+| **11** |  | Elenco ingredienti ed allergeni |  | - |
+| **12** |  | Associazione N:M Ticket-Operatore |  | ,  |
+| **13** |  | Mappatura Piatto-Ingrediente |  | ,  |
+| **14** |  | Mappatura Menu-Piatto |  | ,  |
+| **15** |  | Promozioni e sconti sui piatti |  | ,  |
+| **16** |  | Feedback del cliente al ristorante |  | ,  |
 
-# 2. Inserimento dei dati di prova
-mysql -u root -p < seed_database.sql
+---
 
-# 3. Collaudo delle query
-mysql -u root -p < query_database.sql
+## ⚙️ Guida all'Installazione ed Esecuzione
 
-## 🛠️ Script di Deployment Automatico (`setup_database.sh`)
+### Requisiti Hardware & Software
+- **DBMS**: MySQL Server 8.0+ oppure MariaDB 10.5+
+- **Client SQL**: MySQL CLI, MySQL Workbench, DBeaver o phpMyAdmin
 
-Ho creato per te questo script Bash automatizzato che esegue in sequenza la creazione dello schema, il popolamento con i dati di prova e il collaudo delle 12 query:
+### 🚀 Esecuzione Rapida (Script Automatizzato)
+Se ti trovi in ambiente Linux o macOS, puoi eseguire l'intero setup con un solo comando:
 
-```bash
-#!/usr/bin/env bash
-set -e
 
-DB_HOST="${DB_HOST:-localhost}"
-DB_PORT="${DB_PORT:-3306}"
-DB_USER="${DB_USER:-root}"
-DB_PASS="${DB_PASS:-root}"
 
-echo "================================================================="
-echo "🚀 Avvio Inizializzazione Database Food Delivery"
-echo "================================================================="
+### 🛠️ Esecuzione Manuale tramite CLI MySQL
 
-# 1. Creazione dello Schema DDL
-echo "📌 [1/3] Creazione delle tabelle e vincoli d'integrità..."
-mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" < schema_database.sql
+1. **Creazione dello Schema e delle Tabelle**:
+   
 
-# 2. Inserimento Dati di Popolamento
-echo "📌 [2/3] Inserimento dati di prova..."
-mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" < seed_database.sql
+2. **Popolamento dei Dati di Prova (Opzionale)**:
+   
 
-# 3. Esecuzione Query di Collaudo
-echo "📌 [3/3] Esecuzione delle query di collaudo..."
-mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" < query_database.sql
+3. **Esecuzione delle Query di Collaudo**:
+   
 
-echo "================================================================="
-echo "🎉 Database Food Delivery pronto all'uso!"
-echo "================================================================="
-```
+---
+
+## 📊 Analisi dei Volumi e delle Prestazioni
+
+Stima delle operazioni giornaliere basate su un bacino metropolitano [1, 2]:
+
+| Operazione di Dominio | Tipo | Frequenza Stimata | Tabella Coinvolta |
+| :--- | :-: | :-: | :--- |
+| **Inserimento Nuovo Ordine** |  | ~810.000 / giorno | ,  |
+| **Ricerca Ristoranti per CAP** |  | ~2.500.000 / giorno |  |
+| **Apertura Ticket Assistenza** |  | ~140.000 / giorno | ,  |
+| **Invio Recensione Ristorante** |  | ~81.000 / giorno |  |
+| **Registrazione Nuovo Cliente** |  | ~1.500 / giorno |  |
+| **Aggiornamento Promozioni** |  | ~2.000 / settimana |  |
+
+---
+
+## 🧪 Suite di Collaudo (30 Query SQL)
+
+Il file [](./30_query_interrogative.sql) contiene 30 query pronte per il collaudo del database, organizzate nei seguenti moduli funzionali [1, 2]:
+
+> **Consiglio per il Collaudo:**  
+> Le query coprono le clausole principali SQL:  complesse, Subquery con /, funzioni aggregate , , , clausole  con filtro , e ricerche parziali con  e  [1].
+
+1. 👤 **Gestione Clienti & Wallet** *(Query 1-5)*: ricerca saldi positivi, filtri per fascia d'età e analisi clienti inattivi.
+2. 🍕 **Ristoranti, Menu & Piatti** *(Query 6-10)*: filtri allergeni, ricerca pizzerie per CAP, conteggio pietanze e prezzi medi.
+3. 🏷️ **Promozioni & Sconti** *(Query 11-13)*: piatti scontati a Palermo, promozioni con sconto ≥ 20% e ristoranti senza offerte.
+4. 🧾 **Ordini, Fatturazione & Incassi** *(Query 14-20)*: fatturato per ristorante, incassi divisi per metodo di pagamento e mance medie.
+5. 🛵 **Rider & Logistica** *(Query 21-23)*: rider a Palermo con salario > 1000€, numero consegne e disponibilità nei weekend.
+6. ⭐ **Recensioni & Valutazioni** *(Query 24-26)*: ristoranti con voto medio servizio ≥ 4.0 e classifica Top Rated.
+7. 🎧 **Assistenza Clienti & Ticket** *(Query 27-30)*: storico chat messaggi, ticket in gestione ed operatori poliglotti.
+
+---
+
+## 👥 Team di Sviluppo & Licenza
+
+Progetto universitario realizzato per il corso di **Basi di Dati** [1]:
+
+- 👨‍💻 **Begalov Nikita**
+- 👨‍💻 **Carollo Vincenzo Aurelio**
+- 👨‍💻 **Falzone Samuel**
+- 👨‍💻 **Villa Marco**
+
+Progetto rilasciato sotto licenza **MIT License**.
