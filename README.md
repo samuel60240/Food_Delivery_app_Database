@@ -93,22 +93,22 @@ Il database si compone di **16 tabelle relazionali** completamente vincolate da 
 
 | # | Tabella | Ruolo e Descrizione | Chiave Primaria (PK) | Chiavi Estere (FK) |
 | :-: | :--- | :--- | :--- | :--- |
-| **1** |  | Profili utente e wallet residuo |  | - |
-| **2** |  | Anagrafica esercizi commerciali | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) | - |
-| **3** |  | Personale addetto alle consegne |  | - |
-| **4** |  | Personale dell'assistenza clienti |  | - |
-| **5** |  | Registro ordini e logistica | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) | , ,  |
+| **1** |  | Profili utente e wallet residuo |  |  |
+| **2** |  | Anagrafica esercizi commerciali | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |  |
+| **3** |  | Personale addetto alle consegne |  |  |
+| **4** |  | Personale dell'assistenza clienti |  |  |
+| **5** |  | Registro ordini e logistica | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |    |
 | **6** |  | Dettaglio fiscale e contabile (1:1) | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |  |
 | **7** |  | Segnalazioni di supporto clienti | uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox) |  |
 | **8** |  | Chat del ticket di assistenza |  |  |
 | **9** |  | Cataloghi dei ristoranti |  |  |
 | **10** |  | Singole pietanze dei menu |  |  |
-| **11** |  | Elenco ingredienti ed allergeni |  | - |
-| **12** |  | Associazione N:M Ticket-Operatore |  | ,  |
-| **13** |  | Mappatura Piatto-Ingrediente |  | ,  |
-| **14** |  | Mappatura Menu-Piatto |  | ,  |
-| **15** |  | Promozioni e sconti sui piatti |  | ,  |
-| **16** |  | Feedback del cliente al ristorante |  | ,  |
+| **11** |  | Elenco ingredienti ed allergeni |  |  |
+| **12** |  | Associazione N:M Ticket-Operatore |  |   |
+| **13** |  | Mappatura Piatto-Ingrediente |  |   |
+| **14** |  | Mappatura Menu-Piatto |  |   |
+| **15** |  | Promozioni e sconti sui piatti |  |   |
+| **16** |  | Feedback del cliente al ristorante |  |  |
 
 ---
 
@@ -142,9 +142,9 @@ Stima delle operazioni giornaliere basate su un bacino metropolitano [1, 2]:
 
 | Operazione di Dominio | Tipo | Frequenza Stimata | Tabella Coinvolta |
 | :--- | :-: | :-: | :--- |
-| **Inserimento Nuovo Ordine** |  | ~810.000 / giorno | ,  |
+| **Inserimento Nuovo Ordine** |  | ~810.000 / giorno |   |
 | **Ricerca Ristoranti per CAP** |  | ~2.500.000 / giorno |  |
-| **Apertura Ticket Assistenza** |  | ~140.000 / giorno | ,  |
+| **Apertura Ticket Assistenza** |  | ~140.000 / giorno |   |
 | **Invio Recensione Ristorante** |  | ~81.000 / giorno |  |
 | **Registrazione Nuovo Cliente** |  | ~1.500 / giorno |  |
 | **Aggiornamento Promozioni** |  | ~2.000 / settimana |  |
@@ -171,10 +171,9 @@ Il file [](./30_query_interrogative.sql) contiene 30 query pronte per il collaud
 ##  Team di Sviluppo & Licenza
 
 Progetto universitario realizzato per il corso di **Basi di Dati** [1]:
-
+-  **Falzone Samuel**
 -  **Begalov Nikita**
-- 👨‍💻 **Carollo Vincenzo Aurelio**
-- 👨‍💻 **Falzone Samuel**
-- 👨‍💻 **Villa Marco**
+-  **Carollo Vincenzo Aurelio**
+-  **Villa Marco**
 
 Progetto rilasciato sotto licenza **MIT License**.
